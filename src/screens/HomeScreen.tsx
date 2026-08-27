@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Image, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { Typography } from '../components/Typography';
 import { ErrorState } from '../components/ErrorState';
 import { useAppStore } from '../store';
 import apiClient from '../api/client';
 import { Category, Banner } from '../types';
 import { colors, spacing, radius } from '../theme/colors';
-import { MapPin, Search } from 'lucide-react-native';
+import { MapPin, Search, Bell, Wallet as WalletIcon } from 'lucide-react-native';
 
 export const HomeScreen = ({ navigation }: any) => {
   const { config } = useAppStore();
@@ -22,13 +26,22 @@ export const HomeScreen = ({ navigation }: any) => {
     try {
       setError(false);
 
-      const [bannerRes, categoryRes] = await Promise.all([
-        apiClient.get('/api/v1/home/banners'),
-        apiClient.get('/api/v1/categories')
-      ]);
+      // Use catch to handle individual endpoint failures (e.g. 404 on banners) gracefully without crashing the whole screen
+      const bannerPromise = apiClient.get('/api/v1/banners').catch(e => {
+        console.warn('Banner API error (possibly 404):', e.message);
+        return null;
+      });
+      const categoryPromise = apiClient.get('/api/v1/categories').catch(e => {
+        console.warn('Category API error:', e.message);
+        return null;
+      });
 
-      if (bannerRes.data?.success) setBanners(bannerRes.data.data);
-      if (categoryRes.data?.success) setCategories(categoryRes.data.data);
+      const [bannerRes, categoryRes] = await Promise.all([bannerPromise, categoryPromise]);
+
+      if (bannerRes?.data?.success) setBanners(bannerRes.data.data);
+      if (categoryRes?.data?.success) setCategories(categoryRes.data.data);
+
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     } catch (err) {
       console.warn('Home fetch error:', err);
@@ -70,6 +83,14 @@ export const HomeScreen = ({ navigation }: any) => {
                 <Typography variant="label">Current Location</Typography>
                 <Typography variant="caption" color={colors.text.secondary}>Finding your location...</Typography>
               </View>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.headerIconButton}>
+                <WalletIcon size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.headerIconButton}>
+                <Bell size={20} color={colors.text.primary} />
+              </TouchableOpacity>
             </View>
           </View>
         );
@@ -153,6 +174,14 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   locationTextContainer: {},
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  headerIconButton: {
+    padding: spacing.xs,
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',

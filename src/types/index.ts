@@ -27,6 +27,7 @@ export interface AppConfig {
   supportPhone?: string;
   supportEmail?: string;
   emergencyNumbers: { label: string; number: string }[];
+  referralRewardAmount?: number;
 }
 
 export interface Banner {
@@ -80,4 +81,24 @@ export interface APIResponse<T> {
   data: T;
   message?: string;
   error?: string;
+}
+
+export interface Address {
+  id: string;
+  type: 'HOME' | 'WORK' | 'OTHER';
+  fullAddress: string;
+  landmark?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault: boolean;
+}
+
+export interface Review {
+  id: string;
+  serviceId: string;
+  orderId: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
 }
