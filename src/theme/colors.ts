@@ -1,18 +1,21 @@
 export const colors = {
-  primary: '#E94F37', // Karmivo brand color (Orange/Red)
-  secondary: '#1A1A1A',
+  primary: '#009B51', // Karmivo brand color (Green)
+  primaryDark: '#007A43',
+  primaryLight: '#E5F8EF',
+  secondary: '#111111',
   background: '#FFFFFF',
-  surface: '#F8F9FA',
+  surface: '#F7F8F7',
   text: {
-    primary: '#1A1A1A',
+    primary: '#111111',
     secondary: '#666666',
+    muted: '#999999',
     inverse: '#FFFFFF',
-    error: '#DC3545',
+    error: '#E53935',
   },
-  border: '#EEEEEE',
-  success: '#28A745',
-  warning: '#FFC107',
-  error: '#DC3545',
+  border: '#E5E5E5',
+  success: '#009B55', // Green for success states
+  warning: '#F59E0B',
+  error: '#E53935',
   overlay: 'rgba(0,0,0,0.5)',
 };
 

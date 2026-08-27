@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Typography } from '../components/Typography';
 import { Button } from '../components/Button';
@@ -8,14 +8,11 @@ import apiClient from '../api/client';
 import { colors, spacing, radius } from '../theme/colors';
 
 export const LoginScreen = ({ navigation }: any) => {
-  const { setAuth } = useAuthStore();
   const { config } = useAppStore();
   const [mobile, setMobile] = useState('');
-  const [otp, setOtp] = useState('');
-  const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<'mobile' | 'email'>('mobile');
 
-  // If backend CMS config disables OTP, we'd adapt here. For now, defaulting to standard flow
   const otpEnabled = config?.features?.otpLogin !== false;
 
   const handleSendOtp = async () => {
@@ -28,29 +25,9 @@ export const LoginScreen = ({ navigation }: any) => {
     try {
       // API Call to real backend
       await apiClient.post('/api/v1/auth/send-otp', { mobile });
-      setIsOtpSent(true);
+      navigation.navigate('Otp', { mobile });
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to send OTP. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.length < 4) {
-      Alert.alert('Invalid OTP', 'Please enter a valid OTP.');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await apiClient.post('/api/v1/auth/verify-otp', { mobile, otp });
-      if (response.data?.success) {
-        setAuth(response.data.data.token, response.data.data.user);
-        navigation.replace('MainTabs');
-      }
-    } catch (err: any) {
-      Alert.alert('Verification Failed', err.response?.data?.message || 'Invalid OTP');
     } finally {
       setIsLoading(false);
     }
@@ -61,15 +38,30 @@ export const LoginScreen = ({ navigation }: any) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Typography variant="h1" color={colors.primary}>
-            Welcome to Karmivo
+            Welcome Back!
           </Typography>
           <Typography variant="body" color={colors.text.secondary} style={styles.subtitle}>
-            Enter your mobile number to get started.
+            Login to continue
           </Typography>
         </View>
 
-        {!isOtpSent ? (
-          <View style={styles.form}>
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, loginMethod === 'mobile' && styles.activeTab]}
+            onPress={() => setLoginMethod('mobile')}
+          >
+            <Typography variant="label" color={loginMethod === 'mobile' ? colors.primary : colors.text.secondary}>Mobile</Typography>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, loginMethod === 'email' && styles.activeTab]}
+            onPress={() => setLoginMethod('email')}
+          >
+            <Typography variant="label" color={loginMethod === 'email' ? colors.primary : colors.text.secondary}>Email</Typography>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.form}>
+          {loginMethod === 'mobile' ? (
             <TextInput
               style={styles.input}
               placeholder="Mobile Number"
@@ -78,43 +70,42 @@ export const LoginScreen = ({ navigation }: any) => {
               onChangeText={setMobile}
               maxLength={15}
             />
-            <Button
-              title="Send OTP"
-              onPress={handleSendOtp}
-              isLoading={isLoading}
-              disabled={!otpEnabled}
-            />
-            {!otpEnabled && (
-              <Typography variant="caption" color={colors.error} style={{ marginTop: spacing.sm }}>
-                OTP Login is currently disabled by admin.
-              </Typography>
-            )}
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <Typography variant="label" style={styles.otpLabel}>
-              Enter OTP sent to {mobile}
-            </Typography>
+          ) : (
             <TextInput
               style={styles.input}
-              placeholder="Enter OTP"
-              keyboardType="number-pad"
-              value={otp}
-              onChangeText={setOtp}
-              maxLength={6}
+              placeholder="Email Address"
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
-            <Button
-              title="Verify & Login"
-              onPress={handleVerifyOtp}
-              isLoading={isLoading}
-            />
-            <Button
-              title="Back"
-              variant="ghost"
-              onPress={() => setIsOtpSent(false)}
-              style={{ marginTop: spacing.md }}
-              disabled={isLoading}
-            />
+          )}
+
+          <Button
+            title="Send OTP"
+            onPress={handleSendOtp}
+            isLoading={isLoading}
+            disabled={!otpEnabled && loginMethod === 'mobile'}
+          />
+          {!otpEnabled && loginMethod === 'mobile' && (
+            <Typography variant="caption" color={colors.error} style={{ marginTop: spacing.sm, textAlign: 'center' }}>
+              OTP Login is currently disabled by admin.
+            </Typography>
+          )}
+        </View>
+
+        {(config?.features?.googleLogin || config?.features?.facebookLogin) && (
+          <View style={styles.socialContainer}>
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+              <Typography variant="caption" color={colors.text.secondary} style={{ paddingHorizontal: spacing.sm }}>OR</Typography>
+              <View style={styles.divider} />
+            </View>
+
+            {config.features.googleLogin && (
+              <Button title="Continue with Google" variant="outline" onPress={() => {}} style={styles.socialButton} />
+            )}
+            {config.features.facebookLogin && (
+              <Button title="Continue with Facebook" variant="outline" onPress={() => {}} style={styles.socialButton} />
+            )}
           </View>
         )}
       </View>
@@ -129,10 +120,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.xl,
+    alignItems: 'center',
   },
   subtitle: {
     marginTop: spacing.sm,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    marginBottom: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
   },
   form: {
     gap: spacing.md,
@@ -147,7 +154,26 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     backgroundColor: colors.surface,
   },
-  otpLabel: {
+  socialContainer: {
+    marginTop: spacing.xl,
+    gap: spacing.md,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing.sm,
   },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  socialButton: {
+    borderColor: colors.border,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: spacing.xxl,
+  }
 });
