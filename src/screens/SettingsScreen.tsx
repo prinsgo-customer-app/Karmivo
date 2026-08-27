@@ -20,10 +20,14 @@ export const SettingsScreen = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            // Ideally trigger API delete here
-            Alert.alert('Account Deleted', 'Your account has been permanently removed.');
-            logout();
+          onPress: async () => {
+            try {
+              const { default: apiClient } = await import('../api/client');
+              await apiClient.delete('/api/v1/user/account');
+              logout();
+            } catch (err: any) {
+              Alert.alert('Error', err.response?.data?.message || 'Failed to delete account');
+            }
           }
         }
       ]

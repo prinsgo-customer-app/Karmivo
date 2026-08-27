@@ -33,6 +33,13 @@ export const LoginScreen = ({ navigation }: any) => {
     }
   };
 
+  const handleSocialLogin = (provider: string) => {
+    Alert.alert(
+      `${provider} Login`,
+      `The native implementation for ${provider} authentication is required but not set up in the standalone project. You would be redirected to the provider's OAuth flow.`
+    );
+  };
+
   return (
     <ScreenWrapper>
       <View style={styles.container}>
@@ -101,10 +108,10 @@ export const LoginScreen = ({ navigation }: any) => {
             </View>
 
             {config.features.googleLogin && (
-              <Button title="Continue with Google" variant="outline" onPress={() => {}} style={styles.socialButton} />
+              <Button title="Continue with Google" variant="outline" onPress={() => handleSocialLogin('Google')} style={styles.socialButton} />
             )}
             {config.features.facebookLogin && (
-              <Button title="Continue with Facebook" variant="outline" onPress={() => {}} style={styles.socialButton} />
+              <Button title="Continue with Facebook" variant="outline" onPress={() => handleSocialLogin('Facebook')} style={styles.socialButton} />
             )}
           </View>
         )}

@@ -38,7 +38,25 @@ export const AddressesScreen = ({ navigation }: any) => {
   };
 
   const handleAddressOptions = (id: string) => {
-    Alert.alert('Address Options', 'Edit or Delete address options would appear here.');
+    Alert.alert(
+      'Address Options',
+      'Choose an action for this address',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiClient.delete(`/api/v1/user/addresses/${id}`);
+              fetchAddresses();
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.message || 'Could not delete address');
+            }
+          }
+        }
+      ]
+    );
   };
 
   if (error && !addresses.length) {
