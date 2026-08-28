@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Typography } from '../components/Typography';
 import { ErrorState } from '../components/ErrorState';
 import apiClient from '../api/client';
 import { Order } from '../types';
 import { colors, spacing, radius } from '../theme/colors';
-import { ChevronRight } from 'lucide-react-native';
 
-export const OrdersScreen = ({ navigation }: any) => {
+export const OrdersScreen = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -40,25 +39,18 @@ export const OrdersScreen = ({ navigation }: any) => {
   }
 
   const renderOrder = ({ item }: { item: Order }) => (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.7}
-      onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
-    >
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Typography variant="label">Order #{item.id.slice(0, 8).toUpperCase()}</Typography>
-          <View style={styles.statusBadge}>
-            <Typography variant="caption" color={colors.primary}>{item.status}</Typography>
-          </View>
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Typography variant="label">Order #{item.id.slice(0, 8)}</Typography>
+        <View style={styles.statusBadge}>
+          <Typography variant="caption" color={colors.primary}>{item.status}</Typography>
         </View>
-        <Typography variant="body" color={colors.text.secondary} style={styles.date}>
-          {new Date(item.createdAt).toLocaleString()}
-        </Typography>
-        <Typography variant="label">₹{item.finalAmount}</Typography>
       </View>
-      <ChevronRight size={20} color={colors.text.muted} />
-    </TouchableOpacity>
+      <Typography variant="body" color={colors.text.secondary} style={styles.date}>
+        {new Date(item.createdAt).toLocaleString()}
+      </Typography>
+      <Typography variant="label">₹{item.finalAmount}</Typography>
+    </View>
   );
 
   return (
@@ -90,23 +82,14 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: radius.md,
     marginBottom: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardContent: {
-    flex: 1,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: spacing.xs,
   },
   statusBadge: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primary + '20', // subtle background
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.sm,

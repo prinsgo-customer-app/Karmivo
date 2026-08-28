@@ -22,7 +22,6 @@ export const SplashScreen = ({ navigation }: any) => {
       // Ping backend configuration
       const response = await apiClient.get('/api/v1/config');
 
-      // The live backend wraps the config directly in the response sometimes, or in data.data
       const configData = response.data?.data || response.data;
 
       if (configData) {
@@ -35,12 +34,8 @@ export const SplashScreen = ({ navigation }: any) => {
       }
     } catch (err: any) {
       console.warn('Splash initialization error:', err.message);
-
-      // Fallback: If network error occurs, we still want to let the app initialize
-      // its basic cached state rather than hard blocking the user
       setBackendAvailable(false);
 
-      // If we already have a cached config, we can proceed
       const { config: cachedConfig } = useAppStore.getState();
       if (cachedConfig) {
         await initializeAuth();
