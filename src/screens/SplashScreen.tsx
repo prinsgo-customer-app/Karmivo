@@ -34,6 +34,7 @@ export const SplashScreen = ({ navigation }: any) => {
       }
     } catch (err: any) {
       console.warn('Splash initialization error:', err.message);
+
       setBackendAvailable(false);
 
       const { config: cachedConfig } = useAppStore.getState();
