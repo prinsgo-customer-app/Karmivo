@@ -36,7 +36,27 @@ export const OtpScreen = ({ navigation, route }: any) => {
         navigation.replace('MainTabs');
       }
     } catch (err: any) {
-      Alert.alert('Verification Failed', err.response?.data?.message || 'Invalid OTP');
+      const errorMessage = err.response?.data?.message || err.message;
+
+      // Auto-register if the error specifically indicates the user was not found
+      if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('register first')) {
+        try {
+          const registerResponse = await apiClient.post('/api/v1/auth/register', {
+            mobile,
+            firstName: 'User' // Default fallback name, can be updated later in profile
+          });
+
+          if (registerResponse.data?.success) {
+            setAuth(registerResponse.data.data.token, registerResponse.data.data.user);
+            navigation.replace('MainTabs');
+            return;
+          }
+        } catch (regErr: any) {
+          Alert.alert('Registration Failed', regErr.response?.data?.message || 'Could not auto-register user.');
+        }
+      } else {
+        Alert.alert('Verification Failed', errorMessage || 'Invalid OTP');
+      }
     } finally {
       setIsLoading(false);
     }
