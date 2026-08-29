@@ -43,8 +43,7 @@ export const OtpScreen = ({ navigation, route }: any) => {
         otp,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        password: 'password', // As required by standard payload
-        role: 'CUSTOMER'
+        password: 'password' // As required by standard payload
       });
       if (response.data?.success) {
         const tokens = response.data.data.tokens || {};
@@ -54,6 +53,12 @@ export const OtpScreen = ({ navigation, route }: any) => {
         navigation.replace('MainTabs');
       }
     } catch (err: any) {
+      const isUserExists = err.response?.data?.errorCode === 'USER_EXISTS' || err.response?.status === 409 || err.response?.data?.message?.toLowerCase()?.includes('already exists');
+      if (isUserExists) {
+        // Automatically attempt to login if user already exists in DB
+        return await handleVerifyOtp();
+      }
+
       const errorMessage = err.response?.data?.message || 'Registration Failed. Please try again.';
       Alert.alert('Registration Error', errorMessage);
     } finally {
