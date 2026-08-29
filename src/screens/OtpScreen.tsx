@@ -39,17 +39,26 @@ export const OtpScreen = ({ navigation, route }: any) => {
     try {
       const response = await apiClient.post('/api/v1/auth/register', {
         mobile,
+        phone: mobile,
         otp,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        password: 'password', // As required by standard payload
-        role: 'CUSTOMER'
+        password: 'password' // As required by standard payload
       });
       if (response.data?.success) {
-        setAuth(response.data.data.token, response.data.data.user);
+        const tokens = response.data.data.tokens || {};
+        const accessToken = tokens.accessToken || response.data.data.token;
+        const refreshToken = tokens.refreshToken || null;
+        setAuth(accessToken, refreshToken, response.data.data.user);
         navigation.replace('MainTabs');
       }
     } catch (err: any) {
+      const isUserExists = err.response?.data?.errorCode === 'USER_EXISTS' || err.response?.status === 409 || err.response?.data?.message?.toLowerCase()?.includes('already exists');
+      if (isUserExists) {
+        // Automatically attempt to login if user already exists in DB
+        return await handleVerifyOtp();
+      }
+
       const errorMessage = err.response?.data?.message || 'Registration Failed. Please try again.';
       Alert.alert('Registration Error', errorMessage);
     } finally {
@@ -67,7 +76,10 @@ export const OtpScreen = ({ navigation, route }: any) => {
     try {
       const response = await apiClient.post('/api/v1/auth/verify-otp', { mobile, otp });
       if (response.data?.success) {
-        setAuth(response.data.data.token, response.data.data.user);
+        const tokens = response.data.data.tokens || {};
+        const accessToken = tokens.accessToken || response.data.data.token;
+        const refreshToken = tokens.refreshToken || null;
+        setAuth(accessToken, refreshToken, response.data.data.user);
         navigation.replace('MainTabs');
       }
     } catch (err: any) {

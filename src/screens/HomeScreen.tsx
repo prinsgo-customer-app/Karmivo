@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Image, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Image, TouchableOpacity, LayoutAnimation, UIManager, Platform, Alert } from 'react-native';
 import { ScreenWrapper } from '../components/ScreenWrapper';
+import * as Location from 'expo-location';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -21,6 +22,32 @@ export const HomeScreen = ({ navigation }: any) => {
 
   const [banners, setBanners] = useState<Banner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [currentAddress, setCurrentAddress] = useState('Finding your location...');
+
+  const fetchLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setCurrentAddress('Permission denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      let geocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      if (geocode && geocode.length > 0) {
+        const address = geocode[0];
+        setCurrentAddress(`${address.city || address.district || address.region || 'Unknown Location'}`);
+      } else {
+        setCurrentAddress('Location unavailable');
+      }
+    } catch (e) {
+      setCurrentAddress('Failed to get location');
+    }
+  };
 
   const fetchHomeData = async () => {
     try {
@@ -54,6 +81,7 @@ export const HomeScreen = ({ navigation }: any) => {
 
   useEffect(() => {
     fetchHomeData();
+    fetchLocation();
   }, []);
 
   const onRefresh = () => {
@@ -61,7 +89,17 @@ export const HomeScreen = ({ navigation }: any) => {
     fetchHomeData();
   };
 
-  if (error && !banners.length && !categories.length) {
+  if (loading && !refreshing) {
+    return (
+      <ScreenWrapper>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Typography>Loading home...</Typography>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  if (error && !banners?.length && !categories?.length) {
     return (
       <ScreenWrapper>
         <ErrorState onRetry={fetchHomeData} fullScreen />
@@ -77,13 +115,13 @@ export const HomeScreen = ({ navigation }: any) => {
       case 'header':
         return (
           <View key="header" style={styles.header}>
-            <View style={styles.locationContainer}>
+            <TouchableOpacity style={styles.locationContainer} onPress={fetchLocation}>
               <MapPin size={20} color={colors.primary} />
               <View style={styles.locationTextContainer}>
                 <Typography variant="label">Current Location</Typography>
-                <Typography variant="caption" color={colors.text.secondary}>Finding your location...</Typography>
+                <Typography variant="caption" color={colors.text.secondary}>{currentAddress}</Typography>
               </View>
-            </View>
+            </TouchableOpacity>
             <View style={styles.headerActions}>
               <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.headerIconButton}>
                 <WalletIcon size={20} color={colors.text.primary} />
@@ -108,7 +146,7 @@ export const HomeScreen = ({ navigation }: any) => {
         return (
           <View key="banners" style={styles.bannerContainer}>
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-              {banners.map((b) => (
+              {banners?.map((b) => (
                 <View key={b.id} style={styles.bannerWrapper}>
                   {b.imageUrl ? (
                     <Image source={{ uri: b.imageUrl }} style={styles.bannerImage} />
@@ -128,7 +166,7 @@ export const HomeScreen = ({ navigation }: any) => {
           <View key="categories" style={styles.categoriesContainer}>
             <Typography variant="h3" style={styles.sectionTitle}>Services</Typography>
             <View style={styles.categoryGrid}>
-              {categories.map((c) => (
+              {categories?.map((c) => (
                 <TouchableOpacity key={c.id} style={styles.categoryCard}>
                   <View style={styles.categoryIconPlaceholder}>
                     {c.imageUrl && <Image source={{ uri: c.imageUrl }} style={styles.categoryImage} />}
@@ -152,7 +190,7 @@ export const HomeScreen = ({ navigation }: any) => {
         contentContainerStyle={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
-        {sections.map(renderSection)}
+        {sections?.map(renderSection)}
       </ScrollView>
     </ScreenWrapper>
   );

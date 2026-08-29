@@ -76,7 +76,7 @@ export const WalletScreen = () => {
             <Typography color={colors.text.secondary}>No transactions found.</Typography>
           </View>
         ) : (
-          transactions.map((t: any) => (
+          transactions?.map((t: any) => (
             <View key={t.id} style={styles.txCard}>
               <View>
                 <Typography variant="label">{t.type}</Typography>

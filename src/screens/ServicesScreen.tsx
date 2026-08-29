@@ -47,7 +47,17 @@ export const ServicesScreen = ({ navigation }: any) => {
     fetchServicesData();
   };
 
-  if (error && !categories.length && !services.length) {
+  if (loading && !refreshing) {
+    return (
+      <ScreenWrapper>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Typography>Loading services...</Typography>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  if (error && !categories?.length && !services?.length) {
     return (
       <ScreenWrapper>
         <ErrorState onRetry={fetchServicesData} fullScreen />
@@ -106,7 +116,7 @@ export const ServicesScreen = ({ navigation }: any) => {
               All
             </Typography>
           </TouchableOpacity>
-          {categories.map(c => (
+          {categories?.map(c => (
             <TouchableOpacity
               key={c.id}
               style={[styles.chip, selectedCategoryId === c.id && styles.chipActive]}
