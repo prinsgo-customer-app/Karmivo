@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, TextInput, Alert, TouchableOpacity } from
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Typography } from '../components/Typography';
 import { Button } from '../components/Button';
+import { MapPicker } from '../components/MapPicker';
 import apiClient from '../api/client';
 import { colors, spacing, radius } from '../theme/colors';
 
@@ -71,6 +72,13 @@ export const AddAddressScreen = ({ navigation }: any) => {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        <View style={styles.card}>
+          <Typography variant="label" style={styles.label}>Pin Location</Typography>
+          <MapPicker onLocationSelected={(address) => {
+            if (!fullAddress) setFullAddress(address);
+          }} />
         </View>
 
         <View style={styles.card}>

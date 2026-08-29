@@ -39,6 +39,7 @@ export const OtpScreen = ({ navigation, route }: any) => {
     try {
       const response = await apiClient.post('/api/v1/auth/register', {
         mobile,
+        phone: mobile,
         otp,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -46,7 +47,10 @@ export const OtpScreen = ({ navigation, route }: any) => {
         role: 'CUSTOMER'
       });
       if (response.data?.success) {
-        setAuth(response.data.data.token, response.data.data.user);
+        const tokens = response.data.data.tokens || {};
+        const accessToken = tokens.accessToken || response.data.data.token;
+        const refreshToken = tokens.refreshToken || null;
+        setAuth(accessToken, refreshToken, response.data.data.user);
         navigation.replace('MainTabs');
       }
     } catch (err: any) {
@@ -67,7 +71,10 @@ export const OtpScreen = ({ navigation, route }: any) => {
     try {
       const response = await apiClient.post('/api/v1/auth/verify-otp', { mobile, otp });
       if (response.data?.success) {
-        setAuth(response.data.data.token, response.data.data.user);
+        const tokens = response.data.data.tokens || {};
+        const accessToken = tokens.accessToken || response.data.data.token;
+        const refreshToken = tokens.refreshToken || null;
+        setAuth(accessToken, refreshToken, response.data.data.user);
         navigation.replace('MainTabs');
       }
     } catch (err: any) {

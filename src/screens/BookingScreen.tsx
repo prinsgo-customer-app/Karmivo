@@ -4,6 +4,7 @@ import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Typography } from '../components/Typography';
 import { Button } from '../components/Button';
 import { ErrorState } from '../components/ErrorState';
+import { MapPicker } from '../components/MapPicker';
 import apiClient from '../api/client';
 import { Service } from '../types';
 import { colors, spacing, radius } from '../theme/colors';
@@ -116,6 +117,13 @@ export const BookingScreen = ({ route, navigation }: any) => {
           <Typography variant="body" color={colors.text.secondary}>
             Base Price: ₹{service.price} / {service.pricingUnit}
           </Typography>
+        </View>
+
+        <View style={styles.card}>
+          <Typography variant="label" style={styles.label}>Pin Location</Typography>
+          <MapPicker onLocationSelected={(address) => {
+            if (!location) setLocation(address);
+          }} />
         </View>
 
         <View style={styles.card}>
