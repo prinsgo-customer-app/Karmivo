@@ -100,7 +100,7 @@ export const HelpCenterScreen = () => {
             <Typography color={colors.text.secondary}>No FAQs available at the moment.</Typography>
           </View>
         ) : (
-          faqs.map((faq: any) => (
+          faqs?.map((faq: any) => (
             <View key={faq.id} style={styles.faqCard}>
               <Typography variant="label">{faq.question}</Typography>
               <Typography variant="body" color={colors.text.secondary} style={{ marginTop: spacing.xs }}>

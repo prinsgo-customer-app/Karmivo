@@ -30,7 +30,7 @@ export const LanguageScreen = ({ navigation }: any) => {
         </Typography>
 
         <View style={styles.card}>
-          {LANGUAGES.map((lang, index) => {
+          {LANGUAGES?.map((lang, index) => {
             const isSelected = selectedLanguage === lang.id;
             return (
               <TouchableOpacity
